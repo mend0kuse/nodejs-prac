@@ -1,0 +1,20 @@
+{
+    "products":{
+        "id": "1",
+        "userID": "1",
+        "title": "LOREM",
+        "body": "loremloremloremloremlorem"
+    },
+    {
+        "id": "2",
+        "userID": "1",
+        "title": "LOREM",
+        "body": "loremloremloremloremlorem"
+    },
+    {
+        "id": "3",
+        "userID": "1",
+        "title": "LOREM",
+        "body": "loremloremloremloremlorem"
+    },
+}
