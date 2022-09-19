@@ -1,6 +1,11 @@
 const express = require("express");
+const path = require('path')
+const fs = require('fs').promises;
+
 const app = express();
 const port = 3000;
+
+let products = path.join(__dirname, 'products.json')
 
 function isAuthorized(req, res, next) {
   const auth = req.headers.authorization;
@@ -16,43 +21,25 @@ let bodyParser = require('body-parser');
 app.use(bodyParser.json());
 
 
-let products = [
-  {
-    id: 1,
-    userID: 1,
-    title: "LOREM",
-    body: "loremloremloremloremlorem",
-  },
-  {
-    id: 2,
-    userID: 1,
-    title: "asdasd",
-    body: "lorem",
-  },
-  {
-    id: 3,
-    userID: 2,
-    title: "dasdasdas",
-    body: "loremlorem",
-  },
-];
 
 app.get("/", (req, res) => res.send("Hello API!"));
 
-app.get("/products/:id",isAuthorized, (req, res) => {
-  let find=products.find((p) => p.id === +req.params.id);
+app.get("/products/:id", isAuthorized, (req, res) => {
+  let find = products.find((p) => p.id === +req.params.id);
   res.json(find)
 });
 
-app.get("/products", isAuthorized, (req, res) => {
+app.get("/products", isAuthorized, async (req, res) => {
   const page = +req.query.page;
   const pageSize = +req.query.pageSize;
+
   if (page && pageSize) {
     const start = (page - 1) * pageSize;
     const end = start + pageSize;
     res.json(products.slice(start, end));
   } else {
-    res.json(products);
+    const data = JSON.parse(await fs.readFile(products));
+    res.json(data)
   }
 })
 app.post("/products", isAuthorized, (req, res) => {
