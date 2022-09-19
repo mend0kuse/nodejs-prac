@@ -24,8 +24,10 @@ app.use(bodyParser.json());
 
 app.get("/", (req, res) => res.send("Hello API!"));
 
-app.get("/products/:id", isAuthorized, (req, res) => {
-  let find = products.find((p) => p.id === +req.params.id);
+app.get("/products/:id", isAuthorized, async (req, res) => {
+  let data = JSON.parse(await fs.readFile(products))
+
+  let find = data.find((p) => +p.id === +req.params.id);
   res.json(find)
 });
 
@@ -33,34 +35,49 @@ app.get("/products", isAuthorized, async (req, res) => {
   const page = +req.query.page;
   const pageSize = +req.query.pageSize;
 
+  let data = JSON.parse(await fs.readFile(products))
+
   if (page && pageSize) {
     const start = (page - 1) * pageSize;
     const end = start + pageSize;
-    res.json(products.slice(start, end));
+    res.json(data.slice(start, end));
   } else {
-    const data = JSON.parse(await fs.readFile(products));
     res.json(data)
   }
 })
-app.post("/products", isAuthorized, (req, res) => {
-  const newProduct = { ...req.body, id: products.length + 1 }
-  products = [...products, newProduct]
+
+app.post("/products", isAuthorized, async (req, res) => {
+  let data = JSON.parse(await fs.readFile(products))
+
+  const newProduct = { ...req.body, id: `${data.length + 1}` }
+
+  data.push(newProduct)
+
+  await fs.writeFile(products, JSON.stringify(data))
   res.json(newProduct);
 })
-app.put("/products", isAuthorized, (req, res) => {
+app.put("/products", isAuthorized, async (req, res) => {
+  let data = JSON.parse(await fs.readFile(products))
+
   let updatedProduct;
-  products = products.map(p => {
-    if (p.id === req.body.id) {
+  data = data.map(p => {
+    if (+p.id === +req.body.id) {
       updatedProduct = { ...p, ...req.body };
       return updatedProduct;
     }
     return p;
   })
+
+  await fs.writeFile(products, JSON.stringify(data))
   res.json(updatedProduct);
 })
-app.delete("/products", isAuthorized, (req, res) => {
-  const deletedProduct = products.find(p => p.id === +req.body.id);
-  products = products.filter(p => p.id !== +req.body.id);
+app.delete("/products", isAuthorized, async (req, res) => {
+  let data = JSON.parse(await fs.readFile(products))
+
+  const deletedProduct = data.find(p => +p.id === +req.body.id);
+  data = data.filter(p => +p.id !== +req.body.id);
+
+  await fs.writeFile(products, JSON.stringify(data))
   res.json(deletedProduct);
 })
 
